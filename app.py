@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
-from sklearn.decomposition import PCA
+
 
 # Judul aplikasi
 st.set_page_config(page_title="Clustering", layout="wide")
@@ -17,7 +17,7 @@ try:
     st.success("Dataset berhasil dimuat!")
 
     # Menu navigasi
-    menu = st.sidebar.selectbox("Menu", ["Beranda", "Visualisasi", "K-Means", "Evaluasi Model", "PCA"])
+    menu = st.sidebar.selectbox("Menu", ["Beranda", "Visualisasi", "K-Means"])
 
     if menu == "Beranda":
         st.subheader("Beranda")
@@ -39,15 +39,6 @@ try:
             ax.set_title(f"Distribusi {column}")
             ax.set_xlabel(column)
             ax.set_ylabel("Count")
-            st.pyplot(fig)
-
-        show_correlation = st.checkbox("Tampilkan Heatmap Korelasi")
-
-        if show_correlation:
-            st.write("Heatmap Korelasi")
-            fig, ax = plt.subplots()
-            sns.heatmap(df.corr(), annot=True, fmt=".2f", cmap="coolwarm", ax=ax)
-            ax.set_title("Korelasi Antar Kolom")
             st.pyplot(fig)
 
     elif menu == "K-Means":
@@ -85,60 +76,9 @@ try:
             ax.set_xlabel(features[0])
             ax.set_ylabel(features[1])
             st.pyplot(fig)
-
         else:
             st.warning("Pilih lebih dari satu kolom fitur untuk clustering!")
 
-    elif menu == "Evaluasi Model":
-        st.subheader("Evaluasi Model")
-
-        features = st.multiselect("Pilih Kolom Fitur", df.columns, default=df.columns[:2])
-        if len(features) > 1:
-            scaler = StandardScaler()
-            df_scaled = scaler.fit_transform(df[features])
-
-            max_k = st.slider("Pilih Maksimum K untuk Evaluasi:", min_value=2, max_value=15, value=10)
-            inertia = []
-
-            for k in range(1, max_k + 1):
-                kmeans = KMeans(n_clusters=k, random_state=42)
-                kmeans.fit(df_scaled)
-                inertia.append(kmeans.inertia_)
-
-            st.write("Elbow Method:")
-            fig, ax = plt.subplots()
-            ax.plot(range(1, max_k + 1), inertia, marker='o')
-            ax.set_title("Elbow Method")
-            ax.set_xlabel("Jumlah Klaster (K)")
-            ax.set_ylabel("Inertia")
-            st.pyplot(fig)
-
-    elif menu == "PCA":
-        st.subheader("PCA (Principal Component Analysis)")
-
-        features = st.multiselect("Pilih Kolom Fitur untuk PCA", df.columns, default=df.columns[:2])
-        if len(features) > 1:
-            scaler = StandardScaler()
-            df_scaled = scaler.fit_transform(df[features])
-
-            pca = PCA(n_components=2)
-            pca_result = pca.fit_transform(df_scaled)
-            df['PCA1'] = pca_result[:, 0]
-            df['PCA2'] = pca_result[:, 1]
-
-            st.write("Hasil PCA:")
-            st.dataframe(df[['PCA1', 'PCA2'] + features])
-
-            st.write("Visualisasi PCA:")
-            fig, ax = plt.subplots()
-            sns.scatterplot(x=df['PCA1'], y=df['PCA2'], hue=df['Cluster'], palette='viridis', ax=ax)
-            ax.set_title("PCA: Visualisasi Data dalam 2D")
-            ax.set_xlabel("PCA1")
-            ax.set_ylabel("PCA2")
-            st.pyplot(fig)
-
-        else:
-            st.warning("Pilih lebih dari satu kolom fitur untuk PCA!")
 
 except Exception as e:
     st.error(f"Gagal memuat dataset: {e}")
